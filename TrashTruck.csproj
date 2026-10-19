@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>TrashTruck</AssemblyName>
+    <RootNamespace>TrashTruck</RootNamespace>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PublishAot>true</PublishAot>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <VersionPrefix>1.0.0</VersionPrefix>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+  </PropertyGroup>
+
+  <!-- Persist outside bin/obj so Clean does not reset the build sequence. -->
+  <Target Name="IncrementBuildVersion" BeforeTargets="PrepareForBuild;GetAssemblyVersion"
+          Condition="'$(DesignTimeBuild)' != 'true'">
+    <ReadLinesFromFile File="$(MSBuildProjectDirectory)/BuildNumber.txt">
+      <Output TaskParameter="Lines" PropertyName="_PreviousBuildNumber" />
+    </ReadLinesFromFile>
+    <Error Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch('$(_PreviousBuildNumber)', '^[0-9]{1,5}$'))"
+           Text="BuildNumber.txt must contain one integer between 0 and 65533." />
+    <Error Condition="$(_PreviousBuildNumber) &gt;= 65534"
+           Text="Build number exhausted. Increase VersionPrefix and reset BuildNumber.txt to 0." />
+    <PropertyGroup>
+      <_BuildNumber>$([MSBuild]::Add($(_PreviousBuildNumber), 1))</_BuildNumber>
+      <Version>$(VersionPrefix).$(_BuildNumber)</Version>
+      <AssemblyVersion>$(Version)</AssemblyVersion>
+      <FileVersion>$(Version)</FileVersion>
+      <InformationalVersion>$(Version)</InformationalVersion>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(MSBuildProjectDirectory)/BuildNumber.txt"
+                      Lines="$(_BuildNumber)" Overwrite="true" />
+    <Message Importance="high" Text="Building TrashTruck $(Version)" />
+  </Target>
+
+</Project>
